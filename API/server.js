@@ -4,6 +4,28 @@ const mongoose = require('mongoose');
 const app = express();
 const { serverPort, dbConnectUrl } = require('./config');
 
+
+app.use(bodyParser.json({
+    limit: '500mb',
+  }));
+  app.use(bodyParser.urlencoded({
+    limit: '500mb',
+    extended: true,
+  }));
+  app.use(bodyParser.json());
+  
+  // Enables X-Origin support
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Cache-Control, Authorization, X-Access-Token, accept-version',
+    );
+    res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, PATCH, OPTIONS, DELETE');
+    next();
+  });
+  
+
 const connectDB = async () => {
     mongoose.connect(dbConnectUrl, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
@@ -27,7 +49,6 @@ async function getCollectionData(type) {
     
         return data;
         } catch (error) {
-            console.error('Error retrieving data:', error);
             logger.error(`mongoose get data ERROR - ${error.message}`);
             connectDB();
         }
@@ -48,7 +69,6 @@ app.get('/sentences', async (req, res) => {
 app.get('/wordTypes', async (req, res, next) => {
     try {
         const data = await getCollectionData('words');
-        console.log('dat == ', data);
         res.status(200).json({
             response: data,
             api: 'success',
