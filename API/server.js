@@ -7,24 +7,25 @@ const { serverPort, dbConnectUrl } = require('./config');
 
 app.use(bodyParser.json({
     limit: '500mb',
-  }));
-  app.use(bodyParser.urlencoded({
+}));
+
+app.use(bodyParser.urlencoded({
     limit: '500mb',
     extended: true,
-  }));
-  app.use(bodyParser.json());
-  
-  // Enables X-Origin support
-  app.use((req, res, next) => {
+}));
+
+app.use(bodyParser.json());
+
+// Enables X-Origin support
+app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept, Cache-Control, Authorization, X-Access-Token, accept-version',
-    );
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Cache-Control, Authorization, X-Access-Token, accept-version',
+        );
     res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, PATCH, OPTIONS, DELETE');
     next();
-  });
-  
+});
 
 const connectDB = async () => {
     mongoose.connect(dbConnectUrl, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -54,6 +55,29 @@ async function getCollectionData(type) {
         }
 }
 
+async function addCollectionSentenceData(sentence) {
+    try {
+        console.log(sentence);
+        const documentsToInsert = [{ word: sentence }];
+
+        // Check if the 'Sentences' model already exists
+        if (mongoose.models['Sentences']) {
+            // The model already exists, use it
+            const Sentences = mongoose.model('Sentences');
+            await Sentences.insertMany(documentsToInsert);
+            console.log(`${documentsToInsert.length} documents inserted`);
+        } else {
+            // Define and compile the model
+            const Sentences = mongoose.model('Sentences', new mongoose.Schema({ word: String }));
+            await Sentences.insertMany(documentsToInsert);
+            console.log(`${documentsToInsert.length} documents inserted`);
+        }
+    } catch (error) {
+        console.error('Error inserting documents: ' + error);
+        logger.error(`mongoose add data ERROR - ${error.message}`);
+        connectDB();
+    }
+}
 
 app.get('/sentences', async (req, res) => {
     try {
@@ -90,6 +114,11 @@ app.get('/getByWordType', async (req, res, next) => {
     }
 });
 
+app.post('/sentences', (req, res) => {
+    console.log(req.body.params);
+    addCollectionSentenceData(req.body.params);
+    res.json({ recordset: 'saved' });
+});
 
 // Start the Express server
 app.listen(serverPort, () => {
