@@ -1,0 +1,27 @@
+{
+  "name": "runninghill-sentence-builder-backend",
+  "version": "1.0.0",
+  "description": "This is the backend repository of the runninghill sentence builder test backend",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "mongoose": "^7.6.3",
+    "path": "^0.12.7",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mignonneC1997/runninghill-sentence-builder-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mignonneC1997/runninghill-sentence-builder-backend/issues"
+  },
+  "homepage": "https://github.com/mignonneC1997/runninghill-sentence-builder-backend#readme"
+}
