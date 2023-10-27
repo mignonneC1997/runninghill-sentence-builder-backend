@@ -33,6 +33,7 @@ async function getCollectionData(type) {
         }
 }
 
+
 app.get('/sentences', async (req, res) => {
     try {
         const data = await getCollectionData('sentences');
@@ -43,6 +44,32 @@ app.get('/sentences', async (req, res) => {
         connectDB();
     }
 });
+
+// app.get('/wordTypes', async (req, res) => {
+//     try {
+//         console.log('hi');
+//         const data = await getCollectionData('words');
+//         console.log('dat == ', data);
+//         res.json({ recordset: data });
+//     } catch (error) {
+//         console.error('Error in calling getCollectionData:', error);
+//         logger.error(`get wordTypes ERROR - ${error.message}`);
+//         connectDB();
+//     }
+// });
+
+app.get('/wordTypes', async (req, res, next) => {
+    try {
+        const data = await getCollectionData('words');
+        console.log('dat == ', data);
+        res.status(200).json({
+            response: data,
+            api: 'success',
+        });
+    } catch (err) {
+        next(err);
+    }
+  });
 
 // Start the Express server
 app.listen(serverPort, () => {
