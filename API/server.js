@@ -79,6 +79,18 @@ app.get('/wordTypes', async (req, res, next) => {
     }
 });
 
+app.get('/getByWordType', async (req, res, next) => {
+    try {
+        console.log(req.query.type);
+        const data = await getCollectionData(req.query.type);
+        res.json({ recordset: data });
+    } catch (err) {
+        connectDB();
+        next(err);
+    }
+});
+
+
 // Start the Express server
 app.listen(serverPort, () => {
     console.log(`Server is running on port ${serverPort}`);
