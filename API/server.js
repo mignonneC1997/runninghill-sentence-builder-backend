@@ -34,7 +34,7 @@ const connectDB = async () => {
     .then(() => {
         console.log('Connected to MongoDB');
     }).catch((err) => {
-        logger.error(`MongoDB CONNECT ERROR - ${err.message}`);
+        serverLogger.error(`MongoDB CONNECT ERROR - ${err.message}`);
     });
 }
 
@@ -51,15 +51,14 @@ async function getCollectionData(type) {
         const data = await collectionModel.find({}).maxTimeMS(60000); // 60 seconds timeout
     
         return data;
-        } catch (error) {
-            logger.error(`mongoose get data ERROR - ${error.message}`);
+        } catch (err) {
+            serverLogger.error(`mongoose get data ERROR - ${err.message}`);
             connectDB();
         }
 }
 
 async function addCollectionSentenceData(sentence) {
     try {
-        console.log(sentence);
         const documentsToInsert = [{ word: sentence }];
 
         // Check if the 'Sentences' model already exists
@@ -67,16 +66,14 @@ async function addCollectionSentenceData(sentence) {
             // The model already exists, use it
             const Sentences = mongoose.model('Sentences');
             await Sentences.insertMany(documentsToInsert);
-            console.log(`${documentsToInsert.length} documents inserted`);
         } else {
             // Define and compile the model
             const Sentences = mongoose.model('Sentences', new mongoose.Schema({ word: String }));
             await Sentences.insertMany(documentsToInsert);
             console.log(`${documentsToInsert.length} documents inserted`);
         }
-    } catch (error) {
-        console.error('Error inserting documents: ' + error);
-        logger.error(`mongoose add data ERROR - ${error.message}`);
+    } catch (err) {
+        serverLogger.error(`mongoose add data ERROR - ${err.message}`);
         connectDB();
     }
 }
@@ -85,10 +82,10 @@ app.get('/sentences', async (req, res) => {
     try {
         const data = await getCollectionData('sentences');
         res.json({ recordset: data });
-    } catch (error) {
-        console.error('Error in calling getCollectionData:', error);
-        logger.error(`get sentences ERROR - ${error.message}`);
+    } catch (err) {
+        serverLogger.error(`get sentences ERROR - ${err.message}`);
         connectDB();
+        next(err);
     }
 });
 
@@ -100,6 +97,7 @@ app.get('/wordTypes', async (req, res, next) => {
             api: 'success',
         });
     } catch (err) {
+        serverLogger.error(`get wordTypes ERROR - ${err.message}`);
         connectDB();
         next(err);
     }
@@ -107,19 +105,23 @@ app.get('/wordTypes', async (req, res, next) => {
 
 app.get('/getByWordType', async (req, res, next) => {
     try {
-        console.log(req.query.type);
         const data = await getCollectionData(req.query.type);
         res.json({ recordset: data });
     } catch (err) {
+        serverLogger.error(`get getByWordType ERROR - ${err.message}`);
         connectDB();
         next(err);
     }
 });
 
-app.post('/sentences', (req, res) => {
-    console.log(req.body.params);
-    addCollectionSentenceData(req.body.params);
-    res.json({ recordset: 'saved' });
+app.post('/sentences', (req, res, next) => {
+    try {
+        addCollectionSentenceData(req.body.params);
+        res.json({ recordset: 'saved' });
+    } catch (err) {
+        serverLogger.error(`post sentences ERROR - ${err.message}`);
+        next(err);
+    }
 });
 
 app.post('/frontendLogs', (req, res, next) => {
@@ -130,6 +132,7 @@ app.post('/frontendLogs', (req, res, next) => {
             response: 'Error logged',
         });
     } catch (err) {
+        serverLogger.error(`post frontendLogs ERROR - ${err.message}`);
         next(err);
     }
 
