@@ -68,7 +68,6 @@ async function addCollectionSentenceData(sentence) { // add sentence to database
             // Create model and insert
             const Sentences = mongoose.model('Sentences', new mongoose.Schema({ word: String }));
             await Sentences.insertMany(documentsToInsert);
-            console.log(`${documentsToInsert.length} documents inserted`);
         }
     } catch (err) {
         serverLogger.error(`mongoose add data ERROR - ${err.message}`);
@@ -79,7 +78,10 @@ async function addCollectionSentenceData(sentence) { // add sentence to database
 app.get('/sentences', async (req, res) => { // get sentences from database
     try {
         const data = await getCollectionData('sentences');
-        res.json({ recordset: data });
+        res.status(200).json({
+            api: 'success',
+            recordset: data
+        });
     } catch (err) {
         serverLogger.error(`get sentences ERROR - ${err.message}`);
         connectDB();
@@ -104,7 +106,10 @@ app.get('/wordTypes', async (req, res, next) => { // get word types from databas
 app.get('/getByWordType', async (req, res, next) => { // get words based on word types from database
     try {
         const data = await getCollectionData(req.query.type);
-        res.json({ recordset: data });
+        res.status(200).json({
+            recordset: data,
+            api: 'success',
+        });
     } catch (err) {
         serverLogger.error(`get getByWordType ERROR - ${err.message}`);
         connectDB();
@@ -115,7 +120,10 @@ app.get('/getByWordType', async (req, res, next) => { // get words based on word
 app.post('/sentences', (req, res, next) => { // save new sentence into database
     try {
         addCollectionSentenceData(req.body.params);
-        res.json({ recordset: 'saved' });
+        res.status(200).json({
+            recordset: 'saved',
+            api: 'success',
+        });
     } catch (err) {
         serverLogger.error(`post sentences ERROR - ${err.message}`);
         next(err);
