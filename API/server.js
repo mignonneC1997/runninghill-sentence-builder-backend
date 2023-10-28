@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const { serverPort, dbConnectUrl } = require('./config');
+const { serverPort, dbConnectUrl, collectionTimeout } = require('./config');
 const { serverLogger, frontendLogger } = require('./winstonLogger');
 
 const app = express();
@@ -29,7 +29,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const connectDB = async () => {
+const connectDB = async () => { // connect to MongoDB
     mongoose.connect(dbConnectUrl, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log('Connected to MongoDB');
@@ -40,15 +40,14 @@ const connectDB = async () => {
 
 connectDB();
 
-async function getCollectionData(type) {
+async function getCollectionData(type) { // get data from database
     try {
         // Define the schema for your model
         const wordSchema = new mongoose.Schema({ word: String });
         const collectionModel = mongoose.models[type] || mongoose.model(type, wordSchema);
-      // Ensure the collection has an index for better performance
         await collectionModel.ensureIndexes();
     
-        const data = await collectionModel.find({}).maxTimeMS(60000); // 60 seconds timeout
+        const data = await collectionModel.find({}).maxTimeMS(collectionTimeout);
     
         return data;
         } catch (err) {
@@ -57,17 +56,16 @@ async function getCollectionData(type) {
         }
 }
 
-async function addCollectionSentenceData(sentence) {
+async function addCollectionSentenceData(sentence) { // add sentence to database
     try {
         const documentsToInsert = [{ word: sentence }];
 
-        // Check if the 'Sentences' model already exists
+        // Check if the 'Sentences' already exists
         if (mongoose.models['Sentences']) {
-            // The model already exists, use it
             const Sentences = mongoose.model('Sentences');
-            await Sentences.insertMany(documentsToInsert);
+            await Sentences.insertMany(documentsToInsert); // insert into model
         } else {
-            // Define and compile the model
+            // Create model and insert
             const Sentences = mongoose.model('Sentences', new mongoose.Schema({ word: String }));
             await Sentences.insertMany(documentsToInsert);
             console.log(`${documentsToInsert.length} documents inserted`);
@@ -78,7 +76,7 @@ async function addCollectionSentenceData(sentence) {
     }
 }
 
-app.get('/sentences', async (req, res) => {
+app.get('/sentences', async (req, res) => { // get sentences from database
     try {
         const data = await getCollectionData('sentences');
         res.json({ recordset: data });
@@ -89,7 +87,7 @@ app.get('/sentences', async (req, res) => {
     }
 });
 
-app.get('/wordTypes', async (req, res, next) => {
+app.get('/wordTypes', async (req, res, next) => { // get word types from database
     try {
         const data = await getCollectionData('words');
         res.status(200).json({
@@ -103,7 +101,7 @@ app.get('/wordTypes', async (req, res, next) => {
     }
 });
 
-app.get('/getByWordType', async (req, res, next) => {
+app.get('/getByWordType', async (req, res, next) => { // get words based on word types from database
     try {
         const data = await getCollectionData(req.query.type);
         res.json({ recordset: data });
@@ -114,7 +112,7 @@ app.get('/getByWordType', async (req, res, next) => {
     }
 });
 
-app.post('/sentences', (req, res, next) => {
+app.post('/sentences', (req, res, next) => { // save new sentence into database
     try {
         addCollectionSentenceData(req.body.params);
         res.json({ recordset: 'saved' });
@@ -124,7 +122,7 @@ app.post('/sentences', (req, res, next) => {
     }
 });
 
-app.post('/frontendLogs', (req, res, next) => {
+app.post('/frontendLogs', (req, res, next) => { //log frontend errors
     try {
         frontendLogger.error(req.body.message);
         res.status(200).json({
