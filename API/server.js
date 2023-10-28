@@ -1,9 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const app = express();
-const { serverPort, dbConnectUrl } = require('./config');
 
+const { serverPort, dbConnectUrl } = require('./config');
+const { serverLogger, frontendLogger } = require('./winstonLogger');
+
+const app = express();
 
 app.use(bodyParser.json({
     limit: '500mb',
@@ -118,6 +120,19 @@ app.post('/sentences', (req, res) => {
     console.log(req.body.params);
     addCollectionSentenceData(req.body.params);
     res.json({ recordset: 'saved' });
+});
+
+app.post('/frontendLogs', (req, res, next) => {
+    try {
+        frontendLogger.error(req.body.message);
+        res.status(200).json({
+            api: 'success',
+            response: 'Error logged',
+        });
+    } catch (err) {
+        next(err);
+    }
+
 });
 
 // Start the Express server

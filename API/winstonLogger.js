@@ -5,10 +5,10 @@ const { format, transports } = winston;
 const path = require('path');
 
 const serverPath = path.join('Logs', 'serverLogger.log');
-const frontendMobilePath = path.join('Logs', 'frontendLogger.log');
+const frontendPath = path.join('Logs', 'frontendLogger.log');
 const logFormat = format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`);
 
-frontendMobileLogger = winston.createLogger({
+frontendLogger = winston.createLogger({
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     format: format.combine(
         format.label({ label: path.basename(process.mainModule.filename) }),
@@ -18,7 +18,7 @@ frontendMobileLogger = winston.createLogger({
     ),
     transports: [
         new transports.File({
-        filename: frontendMobilePath,
+        filename: frontendPath,
         format: format.combine(
             logFormat,
         ),
