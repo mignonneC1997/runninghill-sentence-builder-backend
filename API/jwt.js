@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const {jwtSecret } = require('./config');
+const { jwtSecret, jwtExpire } = require('./config');
 
 // Composes a JWT token
 module.exports.getToken = (user_id) => {
     const secret = process.env.JWT_SECRET || jwtSecret;
     return jwt.sign({ useId: user_id }, secret, {
-        expiresIn: 86400, // expires in 24 hours
+        expiresIn: jwtExpire, // expires in 24 hours
     });
 };
 
