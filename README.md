@@ -1,4 +1,4 @@
-# Runninghill Sentence Builder API (v0.1.0)
+# Runninghill Sentence Builder API (v0.2.0)
  
 ## Requirements
 
@@ -31,7 +31,7 @@ z = bug fixes of minor updates
 
 #### Current version
 
-* release 0.1.0
+* release 0.2.0
 
 ### Release to Main(Master)
 Working in ```develop``` branch GIT bash\
